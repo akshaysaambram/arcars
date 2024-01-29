@@ -3,7 +3,10 @@ package com.arcars.arcars.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +38,32 @@ public class CarController {
         return carService.getCarById(id);
     }
 
+    @PreAuthorize("hasRole('ROLE_DEALER') or hasRole('ROLE_ADMIN')")
     @PostMapping("/cars")
     @ResponseBody
     public Car addCar(@RequestBody Car car) {
         return carService.addCar(car);
+    }
+
+    @PreAuthorize("hasRole('ROLE_DEALER') or hasRole('ROLE_ADMIN')")
+    @PatchMapping("/cars/car")
+    @ResponseBody
+    public Car updateCar(@RequestParam Long id, @RequestBody Car updatedCar) {
+        return carService.updateCar(id, updatedCar);
+    }
+
+    @PreAuthorize("hasRole('ROLE_DEALER') or hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/cars/car")
+    @ResponseBody
+    public Boolean deleteCarById(@RequestParam Long id) {
+        return carService.deleteCarById(id);
+    }
+
+    @PreAuthorize("hasRole('ROLE_DEALER') or hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/cars/car")
+    @ResponseBody
+    public Boolean deleteAllCars() {
+        return carService.deleteAllCars();
     }
 
 }

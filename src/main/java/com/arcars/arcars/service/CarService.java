@@ -29,4 +29,48 @@ public class CarService {
         return carRepository.save(car);
     }
 
+    public Car updateCar(@NonNull Long id, Car updatedCar) {
+        Optional<Car> carObject = carRepository.findById(id);
+
+        if (carObject.isPresent()) {
+            Car car = carObject.get();
+
+            car.setMake(updatedCar.getMake());
+            car.setModel(updatedCar.getModel());
+            car.setYear(updatedCar.getYear());
+            car.setColor(updatedCar.getColor());
+            car.setMileage(updatedCar.getMileage());
+            car.setPrice(updatedCar.getPrice());
+            car.setFuelType(updatedCar.getFuelType());
+            car.setTransmission(updatedCar.getTransmission());
+            car.setEngine(updatedCar.getEngine());
+            car.setHorsepower(updatedCar.getHorsepower());
+            car.setOwners(updatedCar.getOwners());
+            car.setImage(updatedCar.getImage());
+
+            return carRepository.save(car);
+
+        } else {
+            throw new IllegalArgumentException("Car with id " + id + " not found");
+        }
+    }
+
+    public Boolean deleteCarById(@NonNull Long id) {
+        if (carRepository.existsById(id)) {
+            carRepository.deleteById(id);
+            return true;
+        }
+
+        return false;
+    }
+
+    public Boolean deleteAllCars() {
+        if (carRepository.count() != 0) {
+            carRepository.deleteAll();
+            return true;
+        }
+
+        return false;
+    }
+
 }

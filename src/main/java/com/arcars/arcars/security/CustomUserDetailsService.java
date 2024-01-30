@@ -14,27 +14,22 @@ import com.arcars.arcars.model.User;
 import com.arcars.arcars.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 
 @Service
-@Log
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email);
 
         Set<GrantedAuthority> authories = user.getRoles().stream()
                 .map((role) -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
 
-        log.warning(username);
-        log.warning(authories.toString());
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
                 authories);
     }
 

@@ -1,5 +1,6 @@
 package com.arcars.arcars.model;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -36,13 +37,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String firstName;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    private Boolean emailVerified;
+
+    private BigInteger phoneNumber;
 
     @JsonIgnore
     private String password;

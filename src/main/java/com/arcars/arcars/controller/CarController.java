@@ -60,7 +60,7 @@ public class CarController {
     }
 
     @PreAuthorize("hasRole('ROLE_DEALER') or hasRole('ROLE_ADMIN')")
-    @DeleteMapping("/cars/car")
+    @DeleteMapping("/cars")
     @ResponseBody
     public Boolean deleteAllCars() {
         return carService.deleteAllCars();

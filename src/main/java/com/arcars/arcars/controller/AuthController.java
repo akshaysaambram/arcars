@@ -1,14 +1,11 @@
 package com.arcars.arcars.controller;
 
-import org.apache.tomcat.util.http.parser.TokenList;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.arcars.arcars.model.User;
 import com.arcars.arcars.payload.JwtAuthResponse;
 import com.arcars.arcars.payload.LoginDTO;
 import com.arcars.arcars.payload.RegisterDTO;
@@ -36,8 +33,13 @@ public class AuthController {
 
     @PostMapping(value = { "/register", "/signup" })
     @ResponseBody
-    public User register(@RequestBody RegisterDTO registerDTO) {
-        return authService.register(registerDTO);
+    public JwtAuthResponse register(@RequestBody RegisterDTO registerDTO) {
+        String accessToken = authService.register(registerDTO);
+
+        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+        jwtAuthResponse.setAccessToken(accessToken);
+
+        return jwtAuthResponse;
     }
 
 }

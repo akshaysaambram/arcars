@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import com.arcars.arcars.payload.RegisterDTO;
 import com.arcars.arcars.repository.RoleRepository;
 import com.arcars.arcars.repository.UserRepository;
 import com.arcars.arcars.security.JwtTokenProvider;
+import com.arcars.arcars.security.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +34,7 @@ public class AuthService {
 
     public String login(LoginDTO loginDTO) {
         Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
+                .authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -41,12 +43,14 @@ public class AuthService {
         return jwtToken;
     }
 
-    public User register(RegisterDTO registerDTO) {
+    public String register(RegisterDTO registerDTO) {
         User user = new User();
 
-        user.setName(registerDTO.getName());
+        user.setFirstName(registerDTO.getFirstName());
+        user.setLastName(registerDTO.getLastName());
         user.setUsername(registerDTO.getUsername());
         user.setEmail(registerDTO.getEmail());
+        user.setPhoneNumber(registerDTO.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
 
         Set<Role> roles = new HashSet<>();
@@ -54,7 +58,20 @@ public class AuthService {
         roles.add(userRole);
         user.setRoles(roles);
 
-        return userRepository.save(user);
+        userRepository.save(user);
+
+        return generateTokenForUser(user);
+    }
+
+    private String generateTokenForUser(User user) {
+        UserDetails userDetails = new UserPrincipal(user);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return jwtTokenProvider.generateJwtToken(authentication);
     }
 
 }

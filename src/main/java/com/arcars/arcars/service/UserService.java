@@ -11,8 +11,11 @@ import com.arcars.arcars.exception.InvalidOTPException;
 import com.arcars.arcars.exception.OTPNotFoundException;
 import com.arcars.arcars.exception.ResourceNotFoundException;
 import com.arcars.arcars.model.Token;
+import com.arcars.arcars.model.User;
 import com.arcars.arcars.repository.TokenRepository;
 import com.arcars.arcars.repository.UserRepository;
+import com.arcars.arcars.security.JwtTokenProvider;
+import com.arcars.arcars.utils.AppConstants;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,31 +26,40 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
+@Log4j2
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+
+    private final JwtTokenProvider jwtTokenProvider;
     private final JavaMailSender javaMailSender;
 
     public void sendVerificationEmail() {
         String bearerToken = extractBearerTokenFromRequest();
-        String userEmail = extractEmailFromToken(bearerToken);
+        String username = jwtTokenProvider.getUsername(bearerToken);
+        
+        User user = userRepository.findByUsername(username);
 
-        if (userRepository.existsByEmail(userEmail)) {
+        if (userRepository.existsByUsername(username)) {
             // Generate OTP
             String generatedOtp = generateOTP();
 
             // Save OTP along with user email
-            Token otpToken = new Token(userEmail, "OTP", generatedOtp);
+            Token otpToken = new Token(username, "OTP", generatedOtp);
             tokenRepository.save(otpToken);
 
             // Send email with OTP
-            sendOtpByEmail(userEmail, generatedOtp);
+            sendOtpByEmail(user.getEmail(), generatedOtp);
+
+            user.setStatus(AppConstants.PENDING_CONFIRMATION.toString());
+            userRepository.save(user);
         } else {
-            throw new ResourceNotFoundException("User", "email", userEmail);
+            throw new ResourceNotFoundException("User", "email", username);
         }
     }
 
@@ -60,17 +72,6 @@ public class UserService {
         }
 
         throw new RuntimeException("Bearer token not found in request headers");
-    }
-
-    private String extractEmailFromToken(String bearerToken) {
-        String token = bearerToken.substring(7); // Remove "Bearer " prefix
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(Keys.secretKeyFor(SignatureAlgorithm.HS256))
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.get("email", String.class);
     }
 
     private String generateOTP() {
@@ -96,11 +97,13 @@ public class UserService {
 
     public void verifyEmail(Long otp) {
         String bearerToken = extractBearerTokenFromRequest();
-        String userEmail = extractEmailFromToken(bearerToken);
+        String username = jwtTokenProvider.getUsername(bearerToken);
 
-        if (userRepository.existsByEmail(userEmail)) {
+        User user = userRepository.findByUsername(username);
+
+        if (userRepository.existsByEmail(user.getEmail())) {
             // Retrieve OTP for the given user email
-            Optional<Token> otpToken = tokenRepository.findByEmailOfTokenGeneratedUserAndTokenType(userEmail, "OTP");
+            Optional<Token> otpToken = tokenRepository.findByUsernameOfTokenGeneratedUserAndTokenType(username, "OTP");
 
             if (otpToken.isPresent()) {
                 Token storedOtp = otpToken.get();
@@ -110,6 +113,9 @@ public class UserService {
                     // For example: userRepository.updateEmailVerifiedStatus(userEmail, true);
 
                     // Delete the OTP record as it's no longer needed
+                    user.setEmailVerified(true);
+                    user.setStatus(AppConstants.REGISTERED.toString());
+                    userRepository.save(user);
                     tokenRepository.delete(storedOtp);
                 } else {
                     throw new InvalidOTPException("Invalid OTP");
@@ -118,7 +124,7 @@ public class UserService {
                 throw new OTPNotFoundException("OTP not found for the given email");
             }
         } else {
-            throw new ResourceNotFoundException("User", "email", userEmail);
+            throw new ResourceNotFoundException("User", "email", username);
         }
     }
 

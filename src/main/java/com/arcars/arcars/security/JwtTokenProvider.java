@@ -24,13 +24,13 @@ public class JwtTokenProvider {
     private Long jwtExpirationDate;
 
     public String generateJwtToken(Authentication authentication) {
-        String email = authentication.getName();
+        String username = authentication.getName();
 
         Date currentDate = new Date();
         Date expiryDate = new Date(currentDate.getTime() + jwtExpirationDate);
 
         String jwtToken = Jwts.builder()
-                .setSubject(email)
+                .setSubject(username)
                 .setIssuedAt(currentDate)
                 .setExpiration(expiryDate)
                 .signWith(key())
@@ -43,7 +43,7 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public String getEmail(String token) {
+    public String getUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()

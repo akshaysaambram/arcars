@@ -1,11 +1,13 @@
 package com.arcars.arcars.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arcars.arcars.model.User;
 import com.arcars.arcars.payload.JwtAuthResponse;
 import com.arcars.arcars.payload.LoginDTO;
 import com.arcars.arcars.payload.RegisterDTO;
@@ -33,13 +35,8 @@ public class AuthController {
 
     @PostMapping(value = { "/register", "/signup" })
     @ResponseBody
-    public JwtAuthResponse register(@RequestBody RegisterDTO registerDTO) {
-        String accessToken = authService.register(registerDTO);
-
-        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
-        jwtAuthResponse.setAccessToken(accessToken);
-
-        return jwtAuthResponse;
+    public ResponseEntity<User> register(@RequestBody RegisterDTO registerDTO) {
+        return ResponseEntity.ok(authService.register(registerDTO));
     }
 
 }

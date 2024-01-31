@@ -46,7 +46,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    private Boolean emailVerified;
+    private Boolean emailVerified = false;
 
     private BigInteger phoneNumber;
 
@@ -62,5 +62,11 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    private String status;
+
+    private String provider;
+
+    private String sysActionFlag;
 
 }

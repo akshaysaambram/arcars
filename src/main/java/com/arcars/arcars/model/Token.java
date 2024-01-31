@@ -26,7 +26,7 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String emailOfTokenGeneratedUser;
+    private String usernameOfTokenGeneratedUser;
 
     private String tokenType;
 
@@ -35,8 +35,8 @@ public class Token {
     @CreationTimestamp
     private LocalDateTime generatedAt;
 
-    public Token(String emailOfTokenGeneratedUser, String tokenType, String token) {
-        this.emailOfTokenGeneratedUser = emailOfTokenGeneratedUser;
+    public Token(String usernameOfTokenGeneratedUser, String tokenType, String token) {
+        this.usernameOfTokenGeneratedUser = usernameOfTokenGeneratedUser;
         this.tokenType = tokenType;
         this.token = token;
     }
